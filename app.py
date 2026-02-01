@@ -48,7 +48,6 @@ SECTION_HEADERS = [
 def split_by_headers(text):
 
     sections = []
-
     current_section = "GENERAL"
     buffer = ""
 
@@ -56,12 +55,19 @@ def split_by_headers(text):
 
         clean_line = line.strip().upper()
 
-        if clean_line in SECTION_HEADERS:
+        matched_header = None
+
+        for header in SECTION_HEADERS:
+            if header in clean_line:
+                matched_header = header
+                break
+
+        if matched_header:
 
             if buffer.strip():
                 sections.append((current_section, buffer.strip()))
 
-            current_section = clean_line
+            current_section = matched_header
             buffer = ""
 
         else:
@@ -71,6 +77,7 @@ def split_by_headers(text):
         sections.append((current_section, buffer.strip()))
 
     return sections
+
 
 
 # ---------------- SMART CHUNKER ---------------- #
@@ -175,12 +182,15 @@ def resume_agent(query):
     )
 
     prompt = f"""
-You are a Resume AI Assistant.
+You are a Resume Analysis Assistant.
 
 Rules:
-- Only answer from resume content
-- If not present say "Not available in resume"
-- Be short and accurate
+- Answer ONLY using the resume content
+- Do NOT add outside knowledge
+- Do NOT hallucinate
+- Extract relevant facts
+- Explain simply in bullet points
+- If information is missing say: Not available in resume
 
 Resume:
 {context}
